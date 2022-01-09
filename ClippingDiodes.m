@@ -1,9 +1,9 @@
 classdef ClippingDiodes < handle
     
     properties (Access = private)
-        % Diode Qualities
-        Is = 10^-12;
-        eta = 1.60;
+        % Germanium Diode Qualities
+        Is = 10^-6;
+        eta = 1.68;
         Vt = 0.026;
         
         % Components
@@ -11,9 +11,11 @@ classdef ClippingDiodes < handle
     end
     
     methods
+        % Constructor
         function o = ClippingDiodes()
         end
         
+        % DSP
         function out = process(o, in)
             [N, C] = size(in);
             out = zeros(N, C);

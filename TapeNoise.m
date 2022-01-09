@@ -1,5 +1,5 @@
 classdef TapeNoise < handle
-
+    % Filtered Tape Hiss
     properties (Access = public)
         gain = 0;
     end

@@ -1,4 +1,5 @@
 classdef RandomLFO < handle
+    % Random LFO with smoothing
     properties (Access = public)
         depth = 0;
         smooth = 0;

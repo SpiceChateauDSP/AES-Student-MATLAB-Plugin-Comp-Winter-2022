@@ -4,6 +4,7 @@ classdef ChorusEffect < handle
         % Objects
         noise;
         comp;
+        exp;
         randomModDelay;
         randomModDelay2;
         diodes;
@@ -51,7 +52,8 @@ classdef ChorusEffect < handle
             o.noise = TapeNoise;
 
             % BiCompressor
-            o.comp = Compander;
+            o.comp = Compander(true);
+            o.exp = Compander(false);
 
             % Delay
             o.randomModDelay = RandomModDelay(false);
@@ -78,6 +80,11 @@ classdef ChorusEffect < handle
         function y = processSample (o, x, c)
             % Smooth Params
             o.updateParams;
+
+            % Compander (Compression)
+            if o.CompOn
+                x = o.comp.processSample(x, c);
+            end
 
             % Input Gain
             gainX = x * o.p(1);
@@ -109,9 +116,9 @@ classdef ChorusEffect < handle
             % Update Memory
             o.m(c) = wet;
 
-            % Compander
+             % Compander (Expansion)
             if o.CompOn
-                wet = o.comp.processSample(wet, c);
+                wet = o.exp.processSample(wet, c);
             end
 
             % Mix
@@ -229,7 +236,7 @@ classdef ChorusEffect < handle
             o.randomModDelay2.setRandomDepth(randomAmount);
         end
         
-        % Compressor
+        % Compandor
         function setCompOn(o, CompOn)
             o.CompOn = CompOn;
         end

@@ -1,5 +1,5 @@
 classdef BQHPF < handle
-    
+    % Biquad High Pass Filter
     properties
         % Intermediate Variables
         w0 = 0; % Angular Freq. (Radians/sample) 

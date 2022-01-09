@@ -1,5 +1,5 @@
 classdef RandomModDelay < handle
-    
+    % Modulated Delay with additional Random LFO
     properties (Access = private)
         % Objects
         lfo;

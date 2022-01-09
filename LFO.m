@@ -1,5 +1,5 @@
 classdef LFO < handle
-    
+    % Sin/Triangle LFO
     properties (Access = public)
         depth = 0;
         rate = 0;

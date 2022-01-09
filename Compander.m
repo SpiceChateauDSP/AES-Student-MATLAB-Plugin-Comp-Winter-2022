@@ -5,25 +5,39 @@ classdef Compander < handle
 
     properties (Access = private)
         % Compressor Parameters
-        attack = 0.050;
-        alphaA = 0;
+        Compress = true;
+
+        attack = 0.01;
         release = 0.250;
+        alphaA = 0;
         alphaR = 0;
 
-        % Static Characteristics
-        threshhold = -12;
-        r = 4;
-        w = 24;
-        t = -12 - 24/2; % threshhold - w/2
+        % Compression Static Characteristics
+        threshholdC = -18;
+        rC = 4;
+        wC = 24;
+
+        % Expansion Parameters
+        expansion = .010;
+        alphaE = 0;
+        
+        % Expansion Static Characteristics
+        threshholdE = -36;
 
         % Feedback
         fb = [0 0];
 
         % Memory
-        m = [-144 -144];
+        mC = [0 0]
+        mE = [-144 -144];
     end
 
     methods
+        % Constructor
+        function o = Compander(Compress)
+            o.Compress = Compress;
+        end
+
         % DSP
         function out = process(o, in)
             [N, C] = size(in);
@@ -45,7 +59,11 @@ classdef Compander < handle
             end
 
             % Determine Decibel Gain Change
-            g = o.smoothGain(xDB, c);
+            if o.Compress
+                g = o.compress(xDB, c);
+            else
+                g = o.expand(xDB, c);
+            end
 
             % Determine Linear Gain Change
             linChange = 10^(g/20);
@@ -53,42 +71,50 @@ classdef Compander < handle
             % Apply Linear Gain Change
             y = x * linChange;
         end
-
-        function g = smoothGain(o, xDB, c)
-            if xDB > (o.t)
-                if xDB > (o.threshhold + o.w/2)
-                    sidechain = o.threshhold + (xDB - o.threshhold) / o.r;
-                else
-                    sidechain = xDB + ((1 / o.r - 1) * (xDB - o.threshhold + o.w/2)^2) / (2 * o.w);
-                end
-
-                gainChange = sidechain - xDB;
-
-                if gainChange < o.m(c)
-                    g = ((1 - o.alphaA) * gainChange) + (o.alphaA * o.m(c));
-                else
-                    g = ((1 - o.alphaR) * gainChange) + (o.alphaR * o.m(c));
-                end
+        
+        % Compression
+        function g = compress(o, xDB, c)
+            if xDB > (o.threshholdC + o.wC/2)
+                sidechain = o.threshholdC + (xDB - o.threshholdC) / o.rC;
+            elseif xDB > (o.threshholdC - o.wC/2)
+                sidechain = xDB + ((1 / o.rC - 1) * (xDB - o.threshholdC + o.wC/2)^2) / (2 * o.wC);
             else
-                sidechain = o.t + (xDB - o.t) * o.r/2;
-                gainChange = sidechain - xDB;
-
-                if gainChange > o.m(c)
-                    g = ((1 - o.alphaA) * gainChange) + (o.alphaA * o.m(c));
-                else
-                    g = ((1 - o.alphaR) * gainChange) + (o.alphaR * o.m(c));
-                end
+                sidechain = xDB;
             end
 
-            o.m(c) = g;
+            gainChange = sidechain - xDB;
+
+            if gainChange < o.mC(c)
+                g = ((1 - o.alphaA) * gainChange) + (o.alphaA * o.mC(c));
+            else
+                g = ((1 - o.alphaR) * gainChange) + (o.alphaR * o.mC(c));
+            end
+            
+            o.mC(c) = g;
         end
-        
+
+        % Expansion
+        function g = expand(o, xDB, c)
+            if xDB > (o.threshholdE)
+                sidechain = xDB;
+            else
+                sidechain = o.threshholdE + (xDB - o.threshholdE) * 1.5;
+            end
+
+            gainChange = sidechain - xDB;
+
+            g = ((1 - o.alphaE) * gainChange) + (o.alphaE * o.mE(c));
+
+            o.mE(c) = g;
+        end
+
         % Prepare To Play
         function setFs(o, Fs)
             o.Fs = Fs;
 
             o.alphaA = exp(-log(9)/(Fs * o.attack));
-            o.alphaR = exp(-log(9)/(Fs * o.release));
+            o.alphaR= exp(-log(9)/(Fs * o.release));
+            o.alphaE= exp(-log(9)/(Fs * o.expansion));
         end
     end
 end

@@ -1,4 +1,5 @@
 classdef TapeWorm < audioPlugin
+    % Chorus Plugin with Lofi Aesthetic
     properties (Access = public)
         % Delay
         delayMs = 1;
