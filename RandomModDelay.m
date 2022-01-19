@@ -32,12 +32,12 @@ classdef RandomModDelay < handle
             
             for c = 1 : C
                 for n = 1 : N
-                    out(n, c) = o.processSampleCubic(in(n, c), c);
+                    out(n, c) = o.processSample(in(n, c), c);
                 end
             end
         end
         
-        function y = processSampleCubic(o, x, c)
+        function y = processSample(o, x, c)
             % Add input to buffer at write pointer
             o.buffer(o.w(c), c) = x;
             
@@ -45,7 +45,7 @@ classdef RandomModDelay < handle
             
             [intDelay, frac] = o.delayModulation(fracDelay);
             
-            [r1, r2, r3, r4] = o.findReadPointersCubic(intDelay, c);
+            [r1, r2, r3, r4] = o.findReadPointers(intDelay, c);
             
             [a0, a1, a2, a3] = o.findCoefficients(r1, r2, r3, r4, c);
             
@@ -55,26 +55,8 @@ classdef RandomModDelay < handle
             o.advanceWritePointer(c);
         end
         
-        function y = processSampleLinear(o, x, c)
-            o.buffer(o.w(c), c) = x;
-            
-            fracDelay = o.updateDelay(c);
-            
-            [intDelay, frac] = o.delayModulation(fracDelay);
-            
-            [r1, r2] = o.findReadPointersLinear(intDelay);
-            
-            y = (1 - frac) * o.buffer(r1, c) + frac * o.buffer(r2, c);
-            
-            o.advanceWritePointer(c);
-        end
-        
         function fracDelay = updateDelay(o, c)
-            if o.modDepth > 0
-                fracDelay = o.lfo.lfoPosition(c);
-            else
-                fracDelay = o.delaySamples;
-            end
+            fracDelay = o.lfo.lfoPosition(c);
             
             if o.randomDepth > 0
                 fracDelay = fracDelay + o.randomLFO.lfoPosition(c);
@@ -90,7 +72,7 @@ classdef RandomModDelay < handle
             frac = fracDelay - intDelay;
         end
         
-        function [r1, r2, r3, r4] = findReadPointersCubic(o, intDelay, c)
+        function [r1, r2, r3, r4] = findReadPointers(o, intDelay, c)
             % Find Read Pointers
             r1 = o.w(c) - intDelay + 1;
             if r1 < 1
@@ -115,18 +97,6 @@ classdef RandomModDelay < handle
             end
         end
         
-        function [r1, r2] = findReadPointersLinear (o, intDelay)
-            r1 = o.w(c) - intDelay;
-            if (r1 < 1)
-                r1 = r1 + o.M;
-            end
-            
-            r2 = r1 - 1;
-            if (r2 < 1)
-                r2 = r2 + o.M;
-            end
-        end
-        
         function [a0, a1, a2, a3] = findCoefficients(o, r1, r2, r3, r4, c)
             a0 = o.buffer(r4, c) - o.buffer(r3, c) - o.buffer(r1, c) + o.buffer(r2, c);
             
@@ -146,12 +116,12 @@ classdef RandomModDelay < handle
         end
         
         % Prepare To Play
-        function setFs(o, Fs)
-            o.lfo.setFs(Fs);
-            
+        function setFs(o, Fs) 
             o.delaySamples = (o.delayMs / 1000) * o.Fs;
-            
+
+            o.lfo.setFs(Fs);
             o.lfo.setRefreshRate(Fs / 50);
+
             o.randomLFO.setRefreshRate(Fs / 25);
         end
         

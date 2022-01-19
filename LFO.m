@@ -2,9 +2,9 @@ classdef LFO < handle
     % Sin/Triangle LFO
     properties (Access = public)
         depth = 0;
-        rate = 0;
+        rate = 0.1;
         dc = 0;
-        shape = 1;
+        shape = 0.75;
         Stereo = false;
         Inv = false;
     end
@@ -29,8 +29,8 @@ classdef LFO < handle
         piAndHalf = (3 * pi) / 2;
 
         % Smoothing
-        m = [0 0 0];
-        alpha = 0.9999;
+        m = 0;
+        alpha = 0.9995;
     end
     
     methods
@@ -49,23 +49,23 @@ classdef LFO < handle
 
                 if o.Inv
                     if o.Stereo
-                        p1 = o.m(1) * sin(o.angle(c) + (pi + c * o.piD2)) + o.dc;
-                        p2 = o.m(1) * sawtooth(o.angle(c) + (pi + c * o.piD2), .5) + o.dc;
+                        p1 = o.m * sin(o.angle(c) + (pi + c * o.piD2)) + o.dc;
+                        p2 = o.m * sawtooth(o.angle(c) + (pi + c * o.piD2), .5) + o.dc;
                     else
-                        p1 = o.m(1) * sin(o.angle(c)+ pi) + o.dc;
-                        p2 = o.m(1) * sawtooth(o.angle(c) + o.piAndHalf, .5) + o.dc;
+                        p1 = o.m * sin(o.angle(c)+ pi) + o.dc;
+                        p2 = o.m * sawtooth(o.angle(c) + o.piAndHalf, .5) + o.dc;
                     end
                 else
                     if o.Stereo
-                        p1 = o.m(1) * sin(o.angle(c) + (c * o.piD2)) + o.dc;
-                        p2 = o.m(1) * sawtooth(o.angle(c) + (c * o.piD2), .5) + o.dc;
+                        p1 = o.m * sin(o.angle(c) + (c * o.piD2)) + o.dc;
+                        p2 = o.m * sawtooth(o.angle(c) + (c * o.piD2), .5) + o.dc;
                     else
-                        p1 = o.m(1) * sin(o.angle(c)) + o.dc;
-                        p2 = o.m(1) * sawtooth(o.angle(c) + o.piD2, .5) + o.dc;
+                        p1 = o.m * sin(o.angle(c)) + o.dc;
+                        p2 = o.m * sawtooth(o.angle(c) + o.piD2, .5) + o.dc;
                     end
                 end
 
-                o.p(c) = o.m(3) * p2 + (1 - o.m(3)) * p1;
+                o.p(c) = o.shape * p2 + (1 - o.shape) * p1;
 
                 % Update angle
                 o.angle(c) = o.angle(c) + o.phi;
@@ -81,14 +81,7 @@ classdef LFO < handle
         % Smooth Parameters
         function updateParams(o)
             % Update Depth
-            o.m(1) = (1 - o.alpha) * o.depth + o.alpha * o.m(1);
-
-            % Update Rate
-            o.m(2) = (1 - o.alpha) * o.rate + o.alpha * o.m(2);
-            o.phi = o.m(2) * o.Ts * o.pi2 * o.MAXCOUNT;
-
-            % Update Shape
-            o.m(3) = (1 - o.alpha) * o.shape + o.alpha * o.m(3);
+            o.m = (1 - o.alpha) * o.depth + o.alpha * o.m;
         end
         
         % Prepare To Play

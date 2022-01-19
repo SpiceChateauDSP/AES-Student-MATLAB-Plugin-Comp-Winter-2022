@@ -2,7 +2,7 @@ classdef RandomLFO < handle
     % Random LFO with smoothing
     properties (Access = public)
         depth = 0;
-        smooth = 0;
+        smooth = 0.997;
     end
     
     properties (Access = private)
@@ -13,8 +13,8 @@ classdef RandomLFO < handle
         smoothP = [0 0];
         
         % Smoothing
-        alpha = .999;
-        m = [0 0];
+        alpha = .99;
+        m = 0;
     end
     
     methods
@@ -28,14 +28,14 @@ classdef RandomLFO < handle
                 o.p(c) = randn;
             end
 
-            o.smoothP(c) = (1 - o.m(1)) * o.p(c) + o.m(1) * o.smoothP(c);
+            o.smoothP(c) = (1 - o.smooth) * o.p(c) + o.smooth * o.smoothP(c);
 
-            position = o.smoothP(c)  * o.m(2);
+            position = o.smoothP(c) * o.m;
         end
 
         function updateParams(o)
-            o.m(1) = (1 - o.alpha) * o.smooth + o.alpha * o.m(1);
-            o.m(2) = (1 - o.alpha) * o.depth + o.alpha * o.m(2);
+            % Depth
+            o.m = (1 - o.alpha) * o.depth + o.alpha * o.m;
         end
         
         % Prepare to Play

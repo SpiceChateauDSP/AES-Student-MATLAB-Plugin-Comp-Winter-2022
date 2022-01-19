@@ -4,14 +4,14 @@ classdef TapeWorm < audioPlugin
         % Delay
         delayMs = 1;
         feedbackN = 0;
-        Tri = false;
+        Dim = false;
         % Mod
         depthN = 0;
         rate = 0.1;
         ModSt = false;
         % Random
         randomN = 0;
-        smoothN = 0;
+        smoothN = 1;
         % Tape
         inGain = 0;
         hiss = 0;
@@ -47,10 +47,10 @@ classdef TapeWorm < audioPlugin
             'DisplayName', 'Feedback', 'DisplayNameLocation','Above', ...
             'Label', '', ...
             'Mapping', {'lin', 0, 1}), ...
-            audioPluginParameter('Tri', ...
+            audioPluginParameter('Dim', ...
             'Style', 'vtoggle', ...
             'Layout', [6, 1], ...
-            'DisplayName', 'Tri', 'DisplayNameLocation', 'Above'), ...
+            'DisplayName', 'Dimension', 'DisplayNameLocation', 'Above'), ...
             ... % Mod Parameters
             audioPluginParameter('depthN', ...
             'Style', 'rotaryknob', ...
@@ -150,9 +150,9 @@ classdef TapeWorm < audioPlugin
             o.chorusEffect.setFeedback (feedbackN);
         end
 
-        function set.Tri(o, Tri)
-            o.Tri = Tri;
-            o.chorusEffect.setTri(Tri);
+        function set.Dim(o, Dim)
+            o.Dim = Dim;
+            o.chorusEffect.setDim(Dim);
         end
         
         % Mod Parameters
